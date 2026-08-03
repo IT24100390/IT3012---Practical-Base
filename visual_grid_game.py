@@ -93,33 +93,22 @@ class VisualGridHuntGame:
 
     # Perception subsystem
     def get_percept(self):
+        x, y = self.agent_pos
+
+        # Assume the agent is facing UP
+        front_cell = (x, min(self.height - 1, y + 1))
+
+        wall_ahead = front_cell in self.walls
+
+        food_here = (x, y) in self.food_positions
+
+        toxin_here = (x, y) in self.toxic_traps
 
         return {
-
-            "agent_pos": list(self.agent_pos),
-
-            "opponent_positions":
-                [list(op) for op in self.opponents],
-
-            "smells_food":
-                tuple(self.agent_pos) in self.food_positions,
-
-            "hit_wall":
-                tuple(self.agent_pos) in self.walls,
-
-            "smells_toxin":
-                tuple(self.agent_pos) in self.toxic_traps,
-
-            "collision":
-                self.collision,
-
-            "score":
-                self.score,
-
-            "remaining_food":
-                len(self.food_positions)
+            "wall_ahead": wall_ahead,
+            "food_here": food_here,
+            "toxin_here": toxin_here
         }
-
 
 
     # Action execution
@@ -408,9 +397,6 @@ class GridGameGUI:
             (self.env.height-1-y)*self.cell_size+35,
             fill="blue"
         )
-
-
-
 
     def run_loop(self):
 
