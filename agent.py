@@ -1,5 +1,7 @@
 from collections import deque
 import heapq
+import math
+
 class SimpleReflexAgent:
     """
     Simple Reflex Agent:
@@ -67,6 +69,96 @@ class ModelBasedAgent:
 
 class SearchAgent:
 
+    def manhattan_distance(self, pos, goal):
+            return abs(pos[0] - goal[0]) + abs(pos[1] - goal[1])
+
+    def euclidean_distance(self, pos, goal):
+        return math.sqrt(
+            (pos[0] - goal[0]) ** 2 +
+            (pos[1] - goal[1]) ** 2
+        )
+    def astar_search(self, start_pos, goal_pos, walls, grid_size, heuristic_type='manhattan'):
+
+        priority_queue = []
+
+        # Calculate initial heuristic
+        if heuristic_type == 'euclidean':
+            h = self.euclidean_distance(start_pos, goal_pos)
+        else:
+            h = self.manhattan_distance(start_pos, goal_pos)
+
+        # (f_cost, g_cost, current_position, path)
+        heapq.heappush(
+            priority_queue,
+            (h, 0, start_pos, [])
+        )
+
+        reached_states = set()
+
+        width, height = grid_size
+
+        while priority_queue:
+
+            f_cost, g_cost, current, path = heapq.heappop(priority_queue)
+
+            # Goal reached
+            if current == goal_pos:
+                return path
+
+            # Mark current state as reached
+            reached_states.add(current)
+
+            x, y = current
+
+            neighbors = [
+                ((x, y + 1), "Up"),
+                ((x, y - 1), "Down"),
+                ((x - 1, y), "Left"),
+                ((x + 1, y), "Right")
+            ]
+
+            for next_pos, action in neighbors:
+
+                nx, ny = next_pos
+
+                # Check whether the next position is valid
+                if (
+                    0 <= nx < width
+                    and 0 <= ny < height
+                    and next_pos not in walls
+                    and next_pos not in reached_states
+                ):
+
+                    # Cost so far
+                    new_g_cost = g_cost + 1
+
+                    # Heuristic cost
+                    if heuristic_type == 'euclidean':
+                        new_h_cost = self.euclidean_distance(
+                            next_pos,
+                            goal_pos
+                        )
+                    else:
+                        new_h_cost = self.manhattan_distance(
+                            next_pos,
+                            goal_pos
+                        )
+
+                    # Total A* cost
+                    new_f_cost = new_g_cost + new_h_cost
+
+                    heapq.heappush(
+                        priority_queue,
+                        (
+                            new_f_cost,
+                            new_g_cost,
+                            next_pos,
+                            path + [action]
+                        )
+                    )
+
+        return None
+    
     def bfs_search(self, start_pos, goal_pos, walls, grid_size):
 
         queue = deque()
@@ -241,8 +333,18 @@ class SearchAgent:
                     percept["walls"],
                     percept["grid_size"]
                 )
+                
+            elif self.active_algo == "AStar":
+                self.plan = self.astar_search(
+                    start_pos,
+                    goal_pos,
+                    percept["walls"],
+                    percept["grid_size"],
+                    heuristic_type="manhattan"
+                )
 
             if self.plan is None:
                 return "Stay"
 
         return self.plan.pop(0)
+    

@@ -283,7 +283,7 @@ class GridGameGUI:
             num_opponents
         )
         self.agent = SearchAgent()
-        self.agent.active_algo = "DFS"
+        self.agent.active_algo = "AStar"
 
 
         max_size = 600
