@@ -1,5 +1,6 @@
 import random
 import tkinter as tk
+from agent import SearchAgent
 
 
 class VisualGridHuntGame:
@@ -105,10 +106,13 @@ class VisualGridHuntGame:
         toxin_here = (x, y) in self.toxic_traps
 
         return {
-            "wall_ahead": wall_ahead,
-            "food_here": food_here,
-            "toxin_here": toxin_here
-        }
+    "wall_ahead": wall_ahead,
+    "food_here": food_here,
+    "toxin_here": toxin_here,
+    "grid_size": (self.width, self.height),
+    "walls": list(self.walls),
+    "all_food": list(self.food_positions)
+    }
 
 
     # Action execution
@@ -278,6 +282,8 @@ class GridGameGUI:
             num_food,
             num_opponents
         )
+        self.agent = SearchAgent()
+        self.agent.active_algo = "DFS"
 
 
         max_size = 600
@@ -407,16 +413,10 @@ class GridGameGUI:
 
             if not self.env.is_done():
 
-                action=random.choice(
-                    [
-                        "Up",
-                        "Down",
-                        "Left",
-                        "Right"
-                    ]
-                )
+                percept = self.env.get_percept()
+                percept["agent_pos"] = list(self.env.agent_pos)
 
-
+                action = self.agent.sense_and_act(percept)
                 self.env.execute_action(action)
 
 
